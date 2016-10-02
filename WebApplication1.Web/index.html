@@ -1,0 +1,95 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Transactions App</title>
+</head>
+<body>
+
+    <div>
+        <h3>All Transactions</h3>
+        <ul id="transactions" />
+    </div>
+
+    <br />
+    <div>
+        <h3>Search for transaction by ID</h3>
+        <input type="text" id="transactionId" size="5" />
+        <input type="button" value="Search" onclick="find();" />
+        <p id="transaction" />
+    </div>
+
+    <br />
+    <div id="addForm">
+        <h3>Add a new transaction</h3>
+        <div>
+            Description <input id="description" />
+        </div>
+        <div>
+            Amount <input id="amount" />
+        </div>
+        <div>
+            <input type="button" value="Add" onclick="add();" />
+        </div>
+    </div>
+    <div id="adding" hidden>Adding...</div>
+
+
+    <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-2.0.3.min.js"></script>
+    <script>
+    var uri = 'api/Transactions';
+
+    $(document).ready(function () {
+        $.getJSON(uri)
+            .done(function (data) {
+                // On success, 'data' contains a list of transactions.
+                addItems(data);
+            })
+            .fail(function (jqXHR, textStatus, err) {
+                alert("failed to get transactions");
+            });
+    });
+
+    function find() {
+        var id = $('#transactionId').val();
+        $('#transaction').text('finding...');
+        $.getJSON(uri + '/' + id)
+            .done(function (data) {
+                $('#transaction').text(formatItem(data));
+            })
+            .fail(function (jqXHR, textStatus, err) {
+                $('#transaction').text('Error: ' + err);
+            });
+    }
+
+    function add() {
+        $('#addForm').hide();
+        $('#adding').show();
+        $.post(
+            uri,
+            {
+                Description: $('#description').val(),
+                Amount: $('#amount').val(),
+            },
+            function (data) {
+                $('#addForm').show();
+                $('#adding').hide();
+                addItems(data);
+            }
+        );
+    }
+
+
+    function formatItem(item) {
+        return item.Description + ': ' + item.Amount + ' (Id: ' + item.Id + ')';
+    }
+
+    function addItems(items) {
+        $('#transactions').empty();
+        $.each(items, function (key, item) {
+            // Add a list item for the transaction.
+            $('<li>', { text: formatItem(item) }).appendTo($('#transactions'));
+        });
+    }
+    </script>
+</body>
+</html>
